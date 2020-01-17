@@ -1,0 +1,25 @@
+name: docker build
+
+on: [push]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+    - name: Build
+      env:
+        NGC_USERNAME: ${{ secrets.NGC_USERNAME }}
+        NGC_PASSWORD: ${{ secrets.NGC_PASSWORD }}
+      run: |
+        echo "$NGC_PASSWORD" | docker login -u "$NGC_USERNAME" --password-stdin nvcr.io
+        docker pull nvcr.io/nvidia/tensorrt:19.05-py3
+        docker tag nvcr.io/nvidia/tensorrt:19.05-py3 xinpascal/tensorrt:19.05-py3
+    - name: Deploy
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        docker push xinpascal/tensorrt:19.05-py3
